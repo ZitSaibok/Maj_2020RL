@@ -6,7 +6,7 @@ from utils import FanCalculator
 if __name__ == '__main__':
 
     hand = []
-    pack = []  # 副露
+    pack = [[], [], [], []]  # 副露
     pool = [[], [], [], []]  # 牌池
     wall = [21, 21, 21, 21]
 
@@ -46,15 +46,15 @@ if __name__ == '__main__':
                     pool[playerID].append(req[3])
 
                 elif req[2] == 'CHI':
+                    in_tile = lastReq[-1]
+                    if in_tile < req[3]:
+                        in_tile = 1
+                    elif in_tile == req[3]:
+                        in_tile = 2
+                    else:
+                        in_tile = 3
+                    pack[playerID].append(['CHI', req[3], in_tile])
                     if playerID == myPlayerID:
-                        in_tile = lastReq[-1]
-                        if in_tile < req[3]:
-                            in_tile = 1
-                        elif in_tile == req[3]:
-                            in_tile = 2
-                        else:
-                            in_tile = 3
-                        pack.append(['CHI', req[3], in_tile])
                         hand.remove(req[4])
                         for pos in range(3):
                             if pos + 1 == in_tile:
@@ -63,38 +63,37 @@ if __name__ == '__main__':
                     pool[playerID].append(req[4])
 
                 elif req[2] == 'PENG':
+                    in_palyer = (playerID - int(lastReq[1]) + 4) % 4
+                    in_tile = lastReq[-1]
+                    pack[playerID].append(['PENG', in_tile, in_palyer])
                     if playerID == myPlayerID:
-                        in_palyer = (myPlayerID - int(lastReq[1]) + 4) % 4
-                        in_tile = lastReq[-1]
-                        pack.append(['PENG', in_tile, in_palyer])
                         hand.remove(req[3])
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                     pool[playerID].append(req[3])
 
                 elif req[2] == 'GANG':
+                    in_palyer = (playerID - int(lastReq[1]) + 4) % 4
+                    in_tile = lastReq[-1]
+                    pack[playerID].append(['GANG', in_tile, in_palyer])
                     if playerID == myPlayerID:
-                        in_palyer = (myPlayerID - int(lastReq[1]) + 4) % 4
-                        in_tile = lastReq[-1]
-                        pack.append(['GANG', in_tile, in_palyer])
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                     
 
                 elif req[2] == 'BUGANG':
-                    if playerID == myPlayerID:
-                        for pack_id in range(len(pack)):
-                            if pack[pack_id][1] == req[3]:
-                                pack[pack_id][0] = 'GANG'
+                    for pack_id in range(len(pack[playerID])):
+                        if pack[playerID][pack_id][1] == req[3]:
+                            pack[playerID][pack_id][0] = 'GANG'
+                            if playerID == myPlayerID:
                                 hand.remove(req[3])
-                                break
+                            break
                     
             lastReq = req
 
         newReq = request[turnID].split(' ')
         itmp = int(newReq[0])
-
 
         ################### strategy begin ###################
         #### step1: HU strategy ####
@@ -103,7 +102,7 @@ if __name__ == '__main__':
         if itmp == 2:
             isJUEZHANG = sum(pool, []).count(newReq[-1]) == 3
             isLAST = wall[(myPlayerID + 1) % 4] == 0
-            result = FanCalculator(pack=pack,
+            result = FanCalculator(pack=pack[myPlayerID],
                                    hand=hand,
                                    winTile=newReq[-1],
                                    isZIMO=True,
@@ -117,7 +116,7 @@ if __name__ == '__main__':
         elif itmp == 3 and int(newReq[1]) != myPlayerID and newReq[2] in ['CHI', 'PENG', 'PLAY', 'BUGANG']:
             isJUEZHANG = sum(pool, []).count(newReq[-1]) == 3
             isLAST = wall[(int(newReq[1]) + 1) % 4] == 0
-            result = FanCalculator(pack=pack,
+            result = FanCalculator(pack=pack[myPlayerID],
                                    hand=hand,
                                    winTile=newReq[-1],
                                    isZIMO=False,
@@ -130,7 +129,7 @@ if __name__ == '__main__':
         fan = 0
         for fanZhong in result:
             fan += fanZhong[0]
-        #### step2: CHI/PONG/GANG strategy ####
+        #### step2: CHI/PENG/GANG strategy ####
 
         #### step3: PLAY strategy ####
         if fan >= 8:
