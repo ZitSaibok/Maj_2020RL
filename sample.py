@@ -99,6 +99,7 @@ if __name__ == '__main__':
         ################### strategy begin ###################
         #### step1: HU strategy ####
         # 自摸/杠开
+        result = ()
         if itmp == 2:
             isJUEZHANG = sum(pool, []).count(newReq[-1]) == 3
             isLAST = wall[(myPlayerID + 1) % 4] == 0
@@ -125,8 +126,7 @@ if __name__ == '__main__':
                                    isLAST=isLAST,
                                    menFeng=myPlayerID,
                                    quanFeng=quan)
-        else:
-            result = None
+
         fan = 0
         for fanZhong in result:
             fan += fanZhong[0]
