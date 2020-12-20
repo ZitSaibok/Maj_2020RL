@@ -31,15 +31,19 @@ if __name__ == '__main__':
             req = request[i].split(' ')
             if int(req[0]) == 2:  # 摸牌
                 hand.append(req[1])
+                wall[myPlayerID] -= 1
+
                 # hand.remove(response[i].split(' ')[1])
             elif int(req[0]) == 3:  # 打/鸣牌
                 playerID = int(req[1])
 
-                if req[2] == 'PLAY':
+                if req[2] == 'DRAW':
+                    wall[playerID] -= 1
+
+                elif req[2] == 'PLAY':
                     if playerID == myPlayerID:
                         hand.remove(req[3])
                     pool[playerID].append(req[3])
-                    wall[playerID] -= 1
 
                 elif req[2] == 'CHI':
                     if playerID == myPlayerID:
@@ -76,7 +80,7 @@ if __name__ == '__main__':
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                         hand.remove(in_tile)
-                    wall[playerID] -= 1
+                    
 
                 elif req[2] == 'BUGANG':
                     if playerID == myPlayerID:
@@ -85,7 +89,7 @@ if __name__ == '__main__':
                                 pack[pack_id][0] = 'GANG'
                                 hand.remove(req[3])
                                 break
-                    wall[playerID] -= 1
+                    
             lastReq = req
 
         newReq = request[turnID].split(' ')
@@ -126,7 +130,7 @@ if __name__ == '__main__':
         fan = 0
         for fanZhong in result:
             fan += fanZhong[0]
-
+        print(wall)
         #### step2: CHI/PONG/GANG strategy ####
 
         #### step3: PLAY strategy ####
