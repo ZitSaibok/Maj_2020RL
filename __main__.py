@@ -3,6 +3,7 @@ import json
 import random
 from utils import FanCalculator
 import logging
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
 
         hand = request[1].split(' ')[5:]  # 手牌
 
-        lastReq = req = []
+        lastReq = req = [-1, -1]
         for i in range(2, turnID):
             req = request[i].split(' ')
             if int(req[0]) == 2:  # 摸牌
@@ -102,12 +103,13 @@ if __name__ == '__main__':
         newReq = request[turnID].split(' ')
         itmp = int(newReq[0])
 
-        logging.info(hand)
+        logging.info(sorted(hand))
         for _ in pack:
             logging.info(_)
         for _ in pool:
             logging.info(_)
         logging.info(wall)
+
         ################### strategy begin ###################
         #### step1: HU strategy ####
         # 自摸/杠开
@@ -132,7 +134,7 @@ if __name__ == '__main__':
                                    winTile=newReq[-1],
                                    isZIMO=True,
                                    isJUEZHANG=isJUEZHANG,
-                                   isGANG=lastReq[0] == 3 and int(lastReq[1]) == myPlayerID,
+                                   isGANG=int(lastReq[0]) == 3 and int(lastReq[1]) == myPlayerID,
                                    isLAST=isLAST,
                                    menFeng=myPlayerID,
                                    quanFeng=quan)
@@ -156,17 +158,50 @@ if __name__ == '__main__':
             fan += fanZhong[0]
         if fan >= 8:
             response.append('HU')
-        #### step2: CHI/PENG/GANG strategy ####
 
+        #### step2: CHI/PENG/GANG strategy ####
+        if itmp == 2:
+            hand.append(newReq[-1])
+        elif itmp == 3 and newReq[2] in ['CHI', 'PENG', 'PLAY',]:
+            poolAndPack.append(newReq[-1])
+        random.shuffle(hand)
+        toPlay = hand[0]
+        restCount = [4 - poolAndPack.count(tile) - hand.count(tile) for tile in hand]
+        handCount = [hand.count(tile) for tile in hand]
+        idx = np.argsort(restCount)
+        full = False
+        for _ in idx:
+            if handCount[_] == 1:
+                toPlay = hand[_]
+                break
+            elif handCount[_] == 2 and restCount[_] == 0:
+                if full:
+                    toPlay = hand[_]
+                full = True
+
+
+        if itmp == 3 and int(newReq[1]) != myPlayerID and newReq[2] in ['CHI', 'PENG', 'PLAY',]:
+            if hand.count(newReq[-1]) == 2:
+                response.append('PENG ' + toPlay)
+            elif hand.count(newReq[-1]) == 3:
+                response.append('GANG')
+            else:
+                response.append('PASS')
+        elif itmp == 2:
+            if hand.count(newReq[-1]) == 4:
+                response.append('GANG' + newReq[-1])
+            else:
+                response.append('PLAY ' + toPlay)
+                for p in pack[myPlayerID]:
+                    if p[0] == 'PENG' and p[1] == newReq[-1]:
+                        response[-1] = 'BUGANG' + newReq[-1]
+                        break
+        else:
+            response.append('PASS')
 
 
         #### step3: PLAY strategy ####
 
-        elif itmp == 2:
-            random.shuffle(hand)
-            response.append('PLAY ' + hand.pop())
-        else:
-            response.append('PASS')
         ################### strategy end ###################
 
     outputJSON = json.dumps({'response': response[turnID]})
