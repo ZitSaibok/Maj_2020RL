@@ -2,6 +2,9 @@ import sys
 import json
 import random
 from utils import FanCalculator
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
@@ -61,25 +64,29 @@ if __name__ == '__main__':
                                 continue
                             hand.remove(req[3][0] + str(int(req[3][1]) - 1 + pos))
                     pool[playerID].append(req[4])
+                    pool[int(lastReq[1])].pop()
 
                 elif req[2] == 'PENG':
-                    in_palyer = (playerID - int(lastReq[1]) + 4) % 4
+                    in_player = (playerID - int(lastReq[1]) + 4) % 4
                     in_tile = lastReq[-1]
-                    pack[playerID].append(['PENG', in_tile, in_palyer])
+                    pack[playerID].append(['PENG', in_tile, in_player])
                     if playerID == myPlayerID:
                         hand.remove(req[3])
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                     pool[playerID].append(req[3])
+                    pool[int(lastReq[1])].pop()
+
 
                 elif req[2] == 'GANG':
-                    in_palyer = (playerID - int(lastReq[1]) + 4) % 4
+                    in_player = (playerID - int(lastReq[1]) + 4) % 4
                     in_tile = lastReq[-1]
-                    pack[playerID].append(['GANG', in_tile, in_palyer])
+                    pack[playerID].append(['GANG', in_tile, in_player])
                     if playerID == myPlayerID:
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                         hand.remove(in_tile)
+                    pool[int(lastReq[1])].pop()
                     
 
                 elif req[2] == 'BUGANG':
@@ -95,26 +102,44 @@ if __name__ == '__main__':
         newReq = request[turnID].split(' ')
         itmp = int(newReq[0])
 
+        logging.info(hand)
+        for _ in pack:
+            logging.info(_)
+        for _ in pool:
+            logging.info(_)
+        logging.info(wall)
         ################### strategy begin ###################
         #### step1: HU strategy ####
         # 自摸/杠开
         result = ()
+        poolAndPack = []
+        for player in pack:
+            for p in player:
+                if p[0] == 'CHI':
+                    poolAndPack += [p[1][0] + str(int(p[1][1]) - 1 + pos) for pos in range(3)]
+                elif p[0] == 'PENG':
+                    poolAndPack += [p[1]] * 3
+                elif p[0] == 'GANG':
+                    poolAndPack += [p[1]] * 4
+        poolAndPack += sum(pool, [])
+
+
         if itmp == 2:
-            isJUEZHANG = sum(pool, []).count(newReq[-1]) == 3
+            isJUEZHANG = poolAndPack.count(newReq[-1]) == 3
             isLAST = wall[(myPlayerID + 1) % 4] == 0
             result = FanCalculator(pack=pack[myPlayerID],
                                    hand=hand,
                                    winTile=newReq[-1],
                                    isZIMO=True,
                                    isJUEZHANG=isJUEZHANG,
-                                   isGANG=lastReq[0] == 3 and lastReq[1] == myPlayerID,
+                                   isGANG=lastReq[0] == 3 and int(lastReq[1]) == myPlayerID,
                                    isLAST=isLAST,
                                    menFeng=myPlayerID,
                                    quanFeng=quan)
 
         # 胡/抢杠
         elif itmp == 3 and int(newReq[1]) != myPlayerID and newReq[2] in ['CHI', 'PENG', 'PLAY', 'BUGANG']:
-            isJUEZHANG = sum(pool, []).count(newReq[-1]) == 3
+            isJUEZHANG = poolAndPack.count(newReq[-1]) == 3
             isLAST = wall[(int(newReq[1]) + 1) % 4] == 0
             result = FanCalculator(pack=pack[myPlayerID],
                                    hand=hand,
@@ -129,11 +154,14 @@ if __name__ == '__main__':
         fan = 0
         for fanZhong in result:
             fan += fanZhong[0]
-        #### step2: CHI/PENG/GANG strategy ####
-
-        #### step3: PLAY strategy ####
         if fan >= 8:
             response.append('HU')
+        #### step2: CHI/PENG/GANG strategy ####
+
+
+
+        #### step3: PLAY strategy ####
+
         elif itmp == 2:
             random.shuffle(hand)
             response.append('PLAY ' + hand.pop())
