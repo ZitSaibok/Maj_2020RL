@@ -189,7 +189,7 @@ if __name__ == '__main__':
                 response.append('PASS')
         elif itmp == 2:
             if hand.count(newReq[-1]) == 4:
-                response.append('GANG' + newReq[-1])
+                response.append('GANG ' + newReq[-1])
             else:
                 response.append('PLAY ' + toPlay)
                 for p in pack[myPlayerID]:
