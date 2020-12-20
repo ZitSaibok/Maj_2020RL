@@ -130,7 +130,6 @@ if __name__ == '__main__':
         fan = 0
         for fanZhong in result:
             fan += fanZhong[0]
-        print(wall)
         #### step2: CHI/PONG/GANG strategy ####
 
         #### step3: PLAY strategy ####
