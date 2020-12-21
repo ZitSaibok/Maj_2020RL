@@ -80,14 +80,20 @@ if __name__ == '__main__':
 
 
                 elif req[2] == 'GANG':
-                    in_player = (playerID - int(lastReq[1]) + 4) % 4
+                    if int(lastReq[0]) == 3:
+                        in_player = (playerID - int(lastReq[1]) + 4) % 4
+                    else:
+                        in_player = myPlayerID
                     in_tile = lastReq[-1]
                     pack[playerID].append(['GANG', in_tile, in_player])
                     if playerID == myPlayerID:
                         hand.remove(in_tile)
                         hand.remove(in_tile)
                         hand.remove(in_tile)
-                    pool[int(lastReq[1])].pop()
+                    if int(lastReq[0]) == 3:
+                        pool[int(lastReq[1])].pop()
+                    else:
+                        hand.remove(in_tile)
                     
 
                 elif req[2] == 'BUGANG':
@@ -102,12 +108,15 @@ if __name__ == '__main__':
 
         newReq = request[turnID].split(' ')
         itmp = int(newReq[0])
-
+        logging.info('****hand****')
         logging.info(sorted(hand))
+        logging.info('****pack****')
         for _ in pack:
             logging.info(_)
+        logging.info('****pool****')
         for _ in pool:
             logging.info(_)
+        logging.info('****wall****')
         logging.info(wall)
 
         ################### strategy begin ###################
@@ -158,11 +167,12 @@ if __name__ == '__main__':
             fan += fanZhong[0]
         if fan >= 8:
             response.append('HU')
-
+        logging.info('****fan****')
+        logging.info(result)
         #### step2: CHI/PENG/GANG strategy ####
         if itmp == 2:
             hand.append(newReq[-1])
-        elif itmp == 3 and newReq[2] in ['CHI', 'PENG', 'PLAY',]:
+        elif itmp == 3 and newReq[2] in ['CHI', 'PENG', 'PLAY']:
             poolAndPack.append(newReq[-1])
         random.shuffle(hand)
         toPlay = hand[0]
@@ -178,7 +188,6 @@ if __name__ == '__main__':
                 if full:
                     toPlay = hand[_]
                 full = True
-
 
         if itmp == 3 and int(newReq[1]) != myPlayerID and newReq[2] in ['CHI', 'PENG', 'PLAY',]:
             if hand.count(newReq[-1]) == 2:
