@@ -120,8 +120,13 @@ if __name__ == '__main__':
         logging.info(wall)
 
         ################### strategy begin ###################
+        #
+        #hand: 新request执行前的手牌
+        #pool: 新request执行前各玩家的弃牌
+        #wall: 新request执行前各玩家的余牌
+        #newReq: 新request
+        #lastReq: 上个request
         #### step1: HU strategy ####
-        # 自摸/杠开
         result = ()
         poolAndPack = []
         for player in pack:
@@ -134,7 +139,7 @@ if __name__ == '__main__':
                     poolAndPack += [p[1]] * 4
         poolAndPack += sum(pool, [])
 
-
+        # 自摸/杠开
         if itmp == 2:
             isJUEZHANG = poolAndPack.count(newReq[-1]) == 3
             isLAST = wall[(myPlayerID + 1) % 4] == 0
@@ -203,7 +208,7 @@ if __name__ == '__main__':
                 response.append('PLAY ' + toPlay)
                 for p in pack[myPlayerID]:
                     if p[0] == 'PENG' and p[1] == newReq[-1]:
-                        response[-1] = 'BUGANG' + newReq[-1]
+                        response[-1] = 'BUGANG ' + newReq[-1]
                         break
         else:
             response.append('PASS')
