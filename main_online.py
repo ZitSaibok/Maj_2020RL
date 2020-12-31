@@ -190,14 +190,25 @@ if __name__ == '__main__':
 
 
             elif newReq[2] == 'GANG':
-                in_player = (playerID - int(lastReq[1]) + 4) % 4
-                in_tile = lastReq[-1]
-                pack[playerID].append(['GANG', in_tile, in_player])
-                if playerID == myPlayerID:
+                if int(lastReq[0] == 2):
+                    in_player = 0
+                    in_tile = response[-1][-1]
+                else:
+                    in_player = (playerID - int(lastReq[1]) + 4) % 4
+                    in_tile = lastReq[-1]
+                if in_player:
+                    pack[playerID].append(['GANG', in_tile, in_player])
+                    pool[int(lastReq[1])].pop()
+                    if playerID == myPlayerID:
+                        hand.remove(in_tile)
+                        hand.remove(in_tile)
+                        hand.remove(in_tile)
+                elif playerID == myPlayerID:
                     hand.remove(in_tile)
                     hand.remove(in_tile)
                     hand.remove(in_tile)
-                pool[int(lastReq[1])].pop()
+                    hand.remove(in_tile)
+                
 
 
             elif newReq[2] == 'BUGANG':
